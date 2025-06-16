@@ -1,0 +1,34 @@
+# --- Betriebssystem-Dateien ---
+
+# Windows: Thumbnails, Index-Dateien
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+
+# --- Temporaere Build-Dateien der Arduino-IDE ---
+
+# Binaries der Arduino IDE
+*.bin
+*.elf
+*.hex
+
+# Temporaere Ordner der IDE
+*.d
+*.dep
+*.o
+*.map
+*.lst
+*.srec
+
+
+# --- IDE-spezifische Dateien ---
+
+# VS Code
+.vscode/
+
+
+# --- Sonstiges ---
+
+# Logdateien
+*.log
