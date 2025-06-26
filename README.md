@@ -1,5 +1,5 @@
 # Projektbeschreibung
-Im Rahmen der Projektarbeit "Lemgoer Stadtklima" wurde ein mobiles Klimamessgerät, basierend auf einem ESP32 zur
+Im Rahmen der Projektarbeit `Lemgoer Stadtklima` wurde ein mobiles Klimamessgerät, basierend auf einem ESP32 zur
 Erfassung von Temperatur, Luftfeuchtigkeit und GPS-Daten entwickelt.
 
 Der für diesen ESP32 entwickelte Quellcode wird über dieses Repository bereitgestellt.
