@@ -123,6 +123,6 @@ Die Stromversorgung über die Batterie und den USB-Anschluss des ESP32 darf **ni
 # Autor
 Erstellt im Rahmen des Projektes `Lemgoer Statdklima` an der [TH OWL](https://www.th-owl.de/).
 
-Kontakt:\
+**Kontakt:**\
 Mika Stellbrink\
 mika.stellbrink@stud.th-owl.de
