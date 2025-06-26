@@ -113,7 +113,7 @@ Der Quellcode aus diesem Repository kann direkt in der Arduino IDE kompiliert we
 
 Neben dem finalen Quellcode des Messgeräts im Ordner `klimamessgeraet` befinden sich im Verzeichnis `SensorSamples` Beispiel-Quellcodes für die Nutzung der einzelnen Komponenten und Sensoren des Messgeräts.
 
-Nachdem der korrekte Mikrocontroller und Anschluss in der IDE ausgewählt wrude, kann der Quellcode über die *Upload*-Schaltfläche auf den ESP32 geladen und ausgeführt werden.
+Nachdem der korrekte Mikrocontroller und Anschluss in der IDE ausgewählt wurde, kann der Quellcode über die *Upload*-Schaltfläche auf den ESP32 geladen und ausgeführt werden.
 
 # Inbetriebnahme / Nutzung
 Nach dem Upload muss das Messgerät vom USB-Anschluss getrennt werden. Erst danach kann es über die Batterie mit Strom versorgt und mobil betrieben werden.
@@ -121,6 +121,8 @@ Nach dem Upload muss das Messgerät vom USB-Anschluss getrennt werden. Erst dana
 Die Stromversorgung über die Batterie und den USB-Anschluss des ESP32 darf **niemals gleichzeitig aktiv** sein! Dies kann den Controller und die anderen Komponenten beschädigen oder sogar zerstören.
 
 # Autor
-Erstellt im Rahmen des Projektes "Lemgoer Statdklima" an der TH OWL.
+Erstellt im Rahmen des Projektes `Lemgoer Statdklima` an der [TH OWL](https://www.th-owl.de/).
 
-Kontakt: Mika Stellbrink
+Kontakt:\
+Mika Stellbrink\
+mika.stellbrink@stud.th-owl.de
