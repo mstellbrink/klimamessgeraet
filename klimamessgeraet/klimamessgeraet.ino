@@ -21,7 +21,7 @@
 #define SCREEN_HEIGHT 64               // Pixelhoehe des OLED-Displays
 #define SCREEN_ADDRESS 0x3D            // I2C-Adresse des OLED-Displays
 #define OLED_RESET -1                  // Reset-Pin, -1 weil über den ESP32 gesteuert
-#define resetRTC                       // Nur setzen wenn die Zeit eingestellt werden muss!!!
+//#define resetRTC                     // Nur setzen wenn die Zeit eingestellt werden muss!!!
 #define MESSINTERVALL 1000             // Intervall zwischen Messungen in ms
 #define TEXTSIZE 1                     // Größe des Texts auf dem Display (1 = 100%), Minimum: 1
 #define SD_PIN 5                       // Pin zum Erkennen der SD-Card
@@ -225,7 +225,7 @@ void loop() {
 
   display.print("Hoehe: ");
   display.print(messung.altitude);
-  display.print("m/");
+  display.print("/");
   display.print(messung.gps_altitude);
   display.println("m");
 
