@@ -25,6 +25,54 @@ Eine ausführliche Anleitung zum Aufbau des Messgerätes befindet sich in dem be
 
 Auf die genaue Struktur sowie den Aufbau des Gehäuses wird in dieser Dokumentation nicht genauer eingegangen.
 
+# Funktion
+Das Messgerät liest, sofern alle Geräte korrekt initialisiert wurden und die SD-Karte erkannt wurde, regelmäßig Daten von sämtlichen Sensoren aus und speichert diese in einer vordefinierten Struktur.
+
+Nach jeder Messung werden die Daten aus dieser Struktur im CSV-Format auf die SD-Karte geschrieben. Die CSV-Datei sowie das Verzeichnis zum Speichern wird, falls noch nicht vorhanden, automatisch erstellt.
+
+Die Struktur zur Messung ist wie folgt aufgebaut:
+```c
+typedef struct messwerte {
+  float altitude;             // Höhe (BME280)
+  float pressure;             // Luftdruck
+  float humidity;             // Luftfeuchtigkeit
+  float temperature;          // Temperatur
+  double latitude;            // Längengrad
+  double longitude;           // Breitengrad
+  double speed;               // Geschwindigkeit
+  double gps_altitude;        // Höhe (Air530 GPS)
+  unsigned int satellites;    // Anzahl Satelliten für GPS
+  unsigned short int hour;    // Stunde
+  unsigned short int minute;  // Minute
+  unsigned short int second;  // Sekunde
+  unsigned short int year;    // Jahr
+  unsigned short int month;   // Monat
+  unsigned short int day;     // Tag
+  float uv_index;             // UV-Index
+
+} Messung;
+Messung messung;  // Strukturvariable für Messwerte
+```
+Das CSV-Format wird für die Speicherung minimal angepasst. Die Daten werden in folgender Reihenfolge, getrennt durch `;` gespeichert:
+- Datum
+- Uhrzeit
+- Anzahl Satelliten (GPS)
+- Längengrad
+- Breitengrad
+- Höhe (BME280)
+- Höhe (GPS)
+- Geschwindigkeit
+- Temperatur
+- Luftfeuchtigkeit
+- Luftdruck
+- UV-Index 
+
+Über den Schalter für den WiFi-Access-Point aktiviert sich der interne WiFi-Chip des ESP32. Um durch die Frequenzen des Access-Points keine fehlerhaften Messwerte zu verursachen, wird die Messung währenddessen pausiert.
+
+Mit z.B. einem Smartphone kann eine Verbindung zum Access-Point hergestellt werden. Über die auf dem Display des Messgerätes dargestellte IP-Adresse kann eine HTML-Seite auf dem ESP32 aufgerufen werden, über die die CSV-Datei direkt heruntergeladen werden kann. So können die Messwerte ausgelesen werden, ohne jedes Mal die SD-Karte ausbauen zu müssen.
+
+Sämtliche Messwerte sowie der Status des Messgeräts werden über den gesamten aktiven Zeitraum hinweg auf dem OLED-Display dargestellt.
+
 # Benötigte Software / Bibliotheken
 ## IDE
 Für Entwicklung, Debugging und das Kompilieren des Quellcodes wurde die von Arduino bereitgestellte *Arduino IDE* verwendet, da diese neben den Arduino-Mikrocontrollern auch die ESP32-Geräte von Espressif unterstützt.
@@ -67,17 +115,11 @@ Neben dem finalen Quellcode des Messgeräts im Ordner `klimamessgeraet` befinden
 
 Nachdem der korrekte Mikrocontroller und Anschluss in der IDE ausgewählt wrude, kann der Quellcode über die *Upload*-Schaltfläche auf den ESP32 geladen und ausgeführt werden.
 
----
 # Inbetriebnahme / Nutzung
 Nach dem Upload muss das Messgerät vom USB-Anschluss getrennt werden. Erst danach kann es über die Batterie mit Strom versorgt und mobil betrieben werden.
 
 Die Stromversorgung über die Batterie und den USB-Anschluss des ESP32 darf **niemals gleichzeitig aktiv** sein! Dies kann den Controller und die anderen Komponenten beschädigen oder sogar zerstören.
 
----
-# Funktion
-TODO
-
----
 # Autor
 Erstellt im Rahmen des Projektes "Lemgoer Statdklima" an der TH OWL.
 
