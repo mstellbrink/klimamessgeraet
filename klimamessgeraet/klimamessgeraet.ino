@@ -223,10 +223,11 @@ void loop() {
   display.print(" / ");
   display.println(messung.longitude);
 
+  // Ohne Nachkommastellen
   display.print("Hoehe: ");
-  display.print(messung.altitude);
+  display.print((int)messung.altitude);
   display.print("/");
-  display.print(messung.gps_altitude);
+  display.print((int)messung.gps_altitude);
   display.println("m");
 
   display.print("Geschw.: ");
@@ -247,6 +248,7 @@ void loop() {
   display.print("hPa");
 
   display.print(" UV: ");
+  // Wert aufrunden
   if (messung.uv_index > 0) {
     display.println((int)messung.uv_index + 1);
   } else {
@@ -312,7 +314,7 @@ File setupSDCard() {
       temp_file.print("Temperatur;");
       temp_file.print("Luftfeuchtigkeit;");
       temp_file.print("Luftdruck;");
-      temp_file.println("UV-Index;");
+      temp_file.println("UV-Index");
       temp_file.flush();  // Änderungen zwischenspeichern
       return temp_file;
     } else {
@@ -356,9 +358,9 @@ void messungSpeichern() {
   file.print(";");
   file.print(messung.satellites);
   file.print(";");
-  file.print(messung.latitude);
+  file.print(messung.latitude, 6);
   file.print(";");
-  file.print(messung.longitude);
+  file.print(messung.longitude, 6);
   file.print(";");
   file.print(messung.altitude);
   file.print(";");
@@ -372,7 +374,6 @@ void messungSpeichern() {
   file.print(";");
   file.print(messung.pressure);
   file.print(";");
-  file.print(messung.uv_index);
-  file.println(";");
+  file.println(messung.uv_index);
   file.flush();  // Änderungen zwischenspeichern
 }
