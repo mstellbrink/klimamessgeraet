@@ -127,3 +127,6 @@ Erstellt im Rahmen des Projektes `Lemgoer Statdklima` an der [TH OWL](https://ww
 **Kontakt:**\
 Mika Stellbrink\
 mika.stellbrink@stud.th-owl.de
+
+**Lizenz**\
+Diese Software ist proprietär und ausschließlich für die akademische Nutzung durch Studierende und Mitarbeitende der Technischen Hochschule Ostwestfalen-Lippe (TH OWL) lizenziert. Siehe LICENSE-Datei für Details.
