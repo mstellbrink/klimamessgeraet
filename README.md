@@ -14,7 +14,7 @@ Das finale Messgerät besteht aus den folgenden Komponenten:
 - GUVA-S12SD UV-Sensor 
 - Grove Air530 GPS-Sensor 
 - Steckboard („Breadboard“)
-- MT3608 DC-DC Step-Up-Modul
+- MT3608 DC-DC Step-Up-Modul (Zwei Stück)
 - TP4056 Batterieladungsmodul und Schutzschaltung (USB Typ C) 
 - Samsung INR18650-30Q Batterie (3,7V; 3000mAh) 
 - Batteriehalter für 18650 Zelle mit Anschluss (optional) 
