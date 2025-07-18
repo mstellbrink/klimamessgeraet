@@ -12,15 +12,15 @@
 #include <WiFi.h>              // WiFi
 
 /*----------------- Makros ----------------*/
-#define GPS_RX 16                      // Receiver-Pin für GPS-UART-Kommunikation
-#define GPS_TX 17                      // Tranceiver-Pin für GPS-UART-Kommunikation
-#define UV_PIN 36                      // Pin für UV-Sensor
-#define WORKING_VOLTAGE 3.3            // Spannung des UV-Sensors
-#define SAMPLING_COUNT 1000            // Zählintervall für UV-Sensor
-#define SCREEN_WIDTH 128               // Pixelbreite des OLED-Displays
-#define SCREEN_HEIGHT 64               // Pixelhoehe des OLED-Displays
-#define SCREEN_ADDRESS 0x3D            // I2C-Adresse des OLED-Displays
-#define OLED_RESET -1                  // Reset-Pin, -1 weil über den ESP32 gesteuert
+#define GPS_RX 16            // Receiver-Pin für GPS-UART-Kommunikation
+#define GPS_TX 17            // Tranceiver-Pin für GPS-UART-Kommunikation
+#define UV_PIN 36            // Pin für UV-Sensor
+#define WORKING_VOLTAGE 3.3  // Spannung des UV-Sensors
+#define SAMPLING_COUNT 1000  // Zählintervall für UV-Sensor
+#define SCREEN_WIDTH 128     // Pixelbreite des OLED-Displays
+#define SCREEN_HEIGHT 64     // Pixelhoehe des OLED-Displays
+#define SCREEN_ADDRESS 0x3D  // I2C-Adresse des OLED-Displays
+#define OLED_RESET -1        // Reset-Pin, -1 weil über den ESP32 gesteuert
 //#define resetRTC                     // Nur setzen wenn die Zeit eingestellt werden muss!!!
 #define MESSINTERVALL 1000             // Intervall zwischen Messungen in ms
 #define TEXTSIZE 1                     // Größe des Texts auf dem Display (1 = 100%), Minimum: 1
@@ -59,6 +59,8 @@ TinyGPSPlus gps;                                                           // GP
 GUVAS12SD uv(UV_PIN, WORKING_VOLTAGE, SAMPLING_COUNT);                     // GUVA-S12SD UV-Sensor
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);  // SSD1306 OLED-Display
 File file;                                                                 // Datei für Messwerte
+
+
 
 /*------- WiFi Server initialisieren ------*/
 WiFiServer server(80);                 // WiFi Server auf Port 80 erstellen
@@ -133,8 +135,17 @@ void setup() {
 
 void loop() {
   if (digitalRead(WLAN_SWITCH_PIN) == HIGH) {
+    page = MAIN_page;
     WiFi.mode(WIFI_AP);
     wifiAvailable = WiFi.softAP(ssid, password);
+
+    if (!file) {
+      page.replace("<button onclick=\"window.location.href='/download'\">CSV herunterladen</button>", "");
+      page.replace("{{ERROR_MESSAGE}}", "<p class='error'>⚠️ SD-Karte nicht erkannt!</p>");
+    } else {
+      page.replace("{{ERROR_MESSAGE}}", "");
+    }
+
     if (wifiAvailable) {
       myIP = WiFi.softAPIP();
       display.clearDisplay();
@@ -147,9 +158,102 @@ void loop() {
       display.println("\nWarte auf Verbindung");
       display.println("...");
       display.display();
+
+      server.begin();
+      Serial.println("Webserver bereit unter IP: " + myIP.toString());
+
       while (digitalRead(WLAN_SWITCH_PIN) == HIGH) {
-        delay(1000);
+        WiFiClient client = server.available();
+        if (client) {
+          currentTime = millis();
+          previousTime = currentTime;
+          String currentLine = "";
+          header = "";
+
+          while (client.connected() && currentTime - previousTime <= timeoutTime) {
+            currentTime = millis();
+            if (client.available()) {
+              char c = client.read();
+              header += c;
+
+              if (c == '\n') {
+                if (currentLine.length() == 0) {
+
+                  // ---- /download aufgerufen ----
+                  if (header.indexOf("GET /download") >= 0) {
+                    if (!file) {
+                      client.println("HTTP/1.1 503 Service Unavailable");
+                      client.println("Content-Type: text/plain");
+                      client.println("Connection: close");
+                      client.println();
+                      client.println("SD-Karte nicht verfügbar.");
+                    } else {
+                      // Sicherstellen, dass alles geschrieben ist
+                      file.flush();
+                      file.close();
+
+                      File download = SD.open(FILENAME, FILE_READ);
+                      if (download) {
+                        client.println("HTTP/1.1 200 OK");
+                        client.println("Content-Type: text/csv");
+                        client.print("Content-Disposition: attachment; filename=\"");
+                        client.print(FILENAME);
+                        client.println("\"");
+                        client.println("Connection: close");
+                        client.println();
+
+                        // Datei blockweise übertragen
+                        uint8_t buf[64];
+                        size_t len;
+                        while ((len = download.read(buf, sizeof(buf))) > 0) {
+                          client.write(buf, len);
+                        }
+
+                        download.close();
+
+                        // Datei wieder für Logging im Append-Modus öffnen
+                        file = SD.open(FILENAME, FILE_APPEND);
+                      } else {
+                        client.println("HTTP/1.1 404 Not Found");
+                        client.println("Content-Type: text/plain");
+                        client.println("Connection: close");
+                        client.println();
+                        client.println("CSV-Datei nicht gefunden.");
+                      }
+                    }
+                  }
+
+                  // ---- normale HTML-Seite ----
+                  else {
+                    client.println("HTTP/1.1 200 OK");
+                    client.println("Content-type:text/html");
+                    client.println("Connection: close");
+                    client.println();
+                    client.print(page);
+                  }
+
+                  client.println();  // HTTP-Antwort beenden
+                  client.flush();    // sicherstellen, dass alles raus ist
+                  delay(20);         // minimale Pause für saubere Übertragung
+                  client.stop();
+                  Serial.println("Client getrennt");
+                  break;
+                } else {
+                  currentLine = "";
+                }
+              } else if (c != '\r') {
+                currentLine += c;
+              }
+            }
+          }
+        }
+
+        delay(100);  // entlastet CPU
       }
+
+      WiFi.softAPdisconnect(true);  // AP trennen, wenn Schalter umgelegt wird
+      server.end();
+      Serial.println("WiFi deaktiviert.");
     } else {
       display.clearDisplay();
       display.setCursor(0, 0);
@@ -190,8 +294,11 @@ void loop() {
   messung.day = rtc.dayOfMonth;
 
   /* GUVA-S12SD ---------------------------*/
-  float mV = uv.read();
-  messung.uv_index = uv.index(mV);
+  // float mV = uv.read();
+  // messung.uv_index = uv.index(mV);
+  int rawADC = analogRead(UV_PIN);
+float voltage = (rawADC / 4095.0) * 3.3;  // ADC-Wert → Spannung in Volt
+messung.uv_index = voltage;              // wenn du willst: temporär hier speichern
 
   /* SSD1306 OLED -------------------------*/
   display.clearDisplay();
@@ -226,7 +333,7 @@ void loop() {
   // Ohne Nachkommastellen
   display.print("Hoehe: ");
   display.print((int)messung.altitude);
-  display.print("/");
+  display.print(" / ");
   display.print((int)messung.gps_altitude);
   display.println("m");
 
@@ -250,7 +357,7 @@ void loop() {
   display.print(" UV: ");
   // Wert aufrunden
   if (messung.uv_index > 0) {
-    display.println((int)messung.uv_index + 1);
+    display.println(messung.uv_index);
   } else {
     display.println(0);
   }
@@ -269,9 +376,9 @@ void loop() {
 
 // Funktion zum setzen der Uhrzeit + Datum auf der RTC
 void setTimeAndDate() {
-  rtc.fillByYMD(2025, 5, 20);  // 20. Mai 2025
-  rtc.fillByHMS(17, 44, 1);    // 17:44:01 Uhr
-  rtc.fillDayOfWeek(2);        // Dienstag
+  rtc.fillByYMD(2025, 7, 18);  // 20. Mai 2025
+  rtc.fillByHMS(15, 34, 1);    // 17:44:01 Uhr
+  rtc.fillDayOfWeek(5);        // Dienstag
   rtc.setTime();               // Zeit auf RTC Chip schreiben
 }
 
@@ -374,6 +481,6 @@ void messungSpeichern() {
   file.print(";");
   file.print(messung.pressure);
   file.print(";");
-  file.println(messung.uv_index);
+  file.println(messung.uv_index, 6);
   file.flush();  // Änderungen zwischenspeichern
 }
