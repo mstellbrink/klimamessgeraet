@@ -60,8 +60,6 @@ GUVAS12SD uv(UV_PIN, WORKING_VOLTAGE, SAMPLING_COUNT);                     // GU
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);  // SSD1306 OLED-Display
 File file;                                                                 // Datei für Messwerte
 
-
-
 /*------- WiFi Server initialisieren ------*/
 WiFiServer server(80);                 // WiFi Server auf Port 80 erstellen
 const char *ssid = "ESP32AP";          // SSID für WiFi Zugangspunkt
@@ -294,11 +292,8 @@ void loop() {
   messung.day = rtc.dayOfMonth;
 
   /* GUVA-S12SD ---------------------------*/
-  // float mV = uv.read();
-  // messung.uv_index = uv.index(mV);
-  int rawADC = analogRead(UV_PIN);
-float voltage = (rawADC / 4095.0) * 3.3;  // ADC-Wert → Spannung in Volt
-messung.uv_index = voltage;              // wenn du willst: temporär hier speichern
+  float mV = uv.read();
+  messung.uv_index = uv.index(mV);
 
   /* SSD1306 OLED -------------------------*/
   display.clearDisplay();
@@ -357,7 +352,7 @@ messung.uv_index = voltage;              // wenn du willst: temporär hier speic
   display.print(" UV: ");
   // Wert aufrunden
   if (messung.uv_index > 0) {
-    display.println(messung.uv_index);
+    display.println((int)messung.uv_index + 1);
   } else {
     display.println(0);
   }
