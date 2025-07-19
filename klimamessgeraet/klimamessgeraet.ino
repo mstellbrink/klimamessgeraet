@@ -132,11 +132,13 @@ void setup() {
 }
 
 void loop() {
+  /* Interrupt wenn WLAN-Schalter aktiviert wird */
   if (digitalRead(WLAN_SWITCH_PIN) == HIGH) {
     page = MAIN_page;
     WiFi.mode(WIFI_AP);
     wifiAvailable = WiFi.softAP(ssid, password);
 
+    // Fehler statt Download-Button auf Webpage anzeigen, wenn die SD-Karte nicht verfügbar ist
     if (!file) {
       page.replace("<button onclick=\"window.location.href='/download'\">CSV herunterladen</button>", "");
       page.replace("{{ERROR_MESSAGE}}", "<p class='error'>⚠️ SD-Karte nicht erkannt!</p>");
@@ -144,6 +146,7 @@ void loop() {
       page.replace("{{ERROR_MESSAGE}}", "");
     }
 
+    // Access-Point aktivieren und Infos auf Display darstellen
     if (wifiAvailable) {
       myIP = WiFi.softAPIP();
       display.clearDisplay();
@@ -158,16 +161,20 @@ void loop() {
       display.display();
 
       server.begin();
-      Serial.println("Webserver bereit unter IP: " + myIP.toString());
 
+      // Endlosschleife solange der Schalter aktiv ist
       while (digitalRead(WLAN_SWITCH_PIN) == HIGH) {
+        // Warte auf eingehende Client-Verbindung
         WiFiClient client = server.available();
+
+        // Sende Webpage bei eigehender Verbindung
         if (client) {
           currentTime = millis();
           previousTime = currentTime;
           String currentLine = "";
           header = "";
 
+          // Timeout beachten
           while (client.connected() && currentTime - previousTime <= timeoutTime) {
             currentTime = millis();
             if (client.available()) {
@@ -177,7 +184,7 @@ void loop() {
               if (c == '\n') {
                 if (currentLine.length() == 0) {
 
-                  // ---- /download aufgerufen ----
+                  // Download-Seite über Button aufgerufen
                   if (header.indexOf("GET /download") >= 0) {
                     if (!file) {
                       client.println("HTTP/1.1 503 Service Unavailable");
@@ -221,7 +228,7 @@ void loop() {
                     }
                   }
 
-                  // ---- normale HTML-Seite ----
+                  // normale HTML-Seite (mit Button zum Download)
                   else {
                     client.println("HTTP/1.1 200 OK");
                     client.println("Content-type:text/html");
@@ -231,7 +238,7 @@ void loop() {
                   }
 
                   client.println();  // HTTP-Antwort beenden
-                  client.flush();    // sicherstellen, dass alles raus ist
+                  client.flush();    // sicherstellen, dass alles gesendet ist
                   delay(20);         // minimale Pause für saubere Übertragung
                   client.stop();
                   Serial.println("Client getrennt");
@@ -248,8 +255,8 @@ void loop() {
 
         delay(100);  // entlastet CPU
       }
-
-      WiFi.softAPdisconnect(true);  // AP trennen, wenn Schalter umgelegt wird
+      // AP trennen, wenn Schalter umgelegt wird
+      WiFi.softAPdisconnect(true);  
       server.end();
       Serial.println("WiFi deaktiviert.");
     } else {
@@ -262,7 +269,6 @@ void loop() {
       }
     }
   }
-
 
   /* BME280 -------------------------------*/
   messung.altitude = bme.readAltitude();
@@ -371,9 +377,9 @@ void loop() {
 
 // Funktion zum setzen der Uhrzeit + Datum auf der RTC
 void setTimeAndDate() {
-  rtc.fillByYMD(2025, 7, 18);  // 20. Mai 2025
-  rtc.fillByHMS(15, 34, 1);    // 17:44:01 Uhr
-  rtc.fillDayOfWeek(5);        // Dienstag
+  rtc.fillByYMD(2025, 7, 18);  // 18. Juli 2025
+  rtc.fillByHMS(15, 34, 1);    // 15:34:01 Uhr
+  rtc.fillDayOfWeek(5);        // Freitag
   rtc.setTime();               // Zeit auf RTC Chip schreiben
 }
 
@@ -460,9 +466,9 @@ void messungSpeichern() {
   file.print(";");
   file.print(messung.satellites);
   file.print(";");
-  file.print(messung.latitude, 6);
+  file.print(messung.latitude, 6); // Mit 6 Nachkommastellen speichern, wichtig!
   file.print(";");
-  file.print(messung.longitude, 6);
+  file.print(messung.longitude, 6); // Mit 6 Nachkommastellen speichern, wichtig!
   file.print(";");
   file.print(messung.altitude);
   file.print(";");
